@@ -5,6 +5,8 @@ import json
 import math
 import argparse
 import Target
+import os
+import sys
 
 def get_color():
     color = rand.choice(list(Target.Color))
@@ -40,6 +42,8 @@ def get_color():
         hue = rand.randint(0, 360)
         saturation = rand.randint(0, 12)
         luminance = rand.randint(80, 100)
+    else:
+        sys.exit('color not found')
     color_code = 'hsl(%d, %d%%, %d%%)' % (hue, saturation, luminance)
     return color_code, color
 
@@ -58,7 +62,7 @@ def draw_shape(draw, size, color):
         draw_square(draw, size, color)
     elif shape.name == 'rectangle':
         draw_rectangle(draw, size, color)
-    elif shape.name == 'trapedoid':
+    elif shape.name == 'trapezoid':
         draw_trapezoid(draw, size, color)
     elif shape.name == 'pentagon':
         draw_polygon(draw, size, 5, color)
@@ -72,6 +76,8 @@ def draw_shape(draw, size, color):
         draw_star(draw, size, color)
     elif shape.name == 'cross':
         draw_cross(draw, size, color)
+    else:
+        sys.exit(shape.name + ' not found')
     return shape
 
 
@@ -214,6 +220,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     size = (args.size, args.size)
+    f = open('imgpath_label.txt', 'w')
+    cwd = os.getcwd()
     for n in range(args.number):
         im = Image.new('RGBA', size, color=(0,0,0,0))
         draw = ImageDraw.Draw(im)
@@ -222,7 +230,7 @@ if __name__ == "__main__":
         text_color_code, text_color = get_color()
         shape = draw_shape(draw, size, shape_color_code)
         text = draw_text(draw, size, text_color_code)
-        im = ImageOps.expand(im, border=5, fill=(0))
+        im = ImageOps.expand(im, border=size[0]*10/100, fill=(0))
         orientation=rand.randint(0,355)
         im = im.rotate(orientation)
         im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
@@ -230,6 +238,7 @@ if __name__ == "__main__":
         del draw # done drawing
         save_name = "target" + str(n).zfill(6)
         im.save(save_name + '.png', 'PNG')
+        f.write(cwd + '/' + save_name + '.png' + ' ' + str(shape.value) + '\n')
 
         with open(save_name + '.json', 'w') as outfile:
             json.dump({'shape':shape.name,
@@ -239,3 +248,4 @@ if __name__ == "__main__":
                         'orientation':orientation},
                         outfile,
                         indent=4)
+    f.close()

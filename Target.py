@@ -12,7 +12,7 @@ class Shape(Enum):
     pentagon = 7
     hexagon = 8
     heptagon = 9
-    octogon = 10
+    octagon = 10
     star = 11
     cross = 12
 
