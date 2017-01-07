@@ -221,6 +221,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     size = (args.size, args.size)
     f = open('imgpath_label.txt', 'w')
+    background = Image.open("background.jpg").convert('RGBA')
     cwd = os.getcwd()
     for n in range(args.number):
         im = Image.new('RGBA', size, color=(0,0,0,0))
@@ -234,6 +235,15 @@ if __name__ == "__main__":
         orientation=rand.randint(0,355)
         im = im.rotate(orientation)
         im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
+
+        crop_left = rand.randint(0, background.width - im.width)
+        crop_right = crop_left + im.width
+        crop_top = rand.randint(0, background.height - im.height)
+        crop_bottom = crop_top + im.height
+        crop_box = (crop_left, crop_top, crop_right, crop_bottom)
+        cropped_background = background.crop(crop_box)
+        im = Image.alpha_composite(cropped_background, im)
+        im = im.convert('RGB')
 
         del draw # done drawing
         save_name = "target" + str(n).zfill(6)
