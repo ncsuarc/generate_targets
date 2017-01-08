@@ -221,7 +221,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     size = (args.size, args.size)
     f = open('imgpath_label.txt', 'w')
-    background = Image.open("background.jpg").convert('RGBA')
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    background = Image.open(script_path + "/background.jpg").convert('RGBA')
     cwd = os.getcwd()
     for n in range(args.number):
         im = Image.new('RGBA', size, color=(0,0,0,0))
