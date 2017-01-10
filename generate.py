@@ -199,7 +199,7 @@ def draw_cross(draw, size, color):
 
 def draw_text(draw, size, color):
     font_location="FreeSansBold.ttf"
-    font = ImageFont.truetype(font_location, size=(size[0]*50/100))
+    font = ImageFont.truetype(font_location, size=int(size[0]*50/100))
     text = rand.choice(string.ascii_uppercase)
     text_width, text_height = draw.textsize(text, font)
     text_pos = ((size[0]-text_width)/2, (size[1]-text_height)/2)
@@ -232,7 +232,7 @@ if __name__ == "__main__":
         text_color_code, text_color = get_color()
         shape = draw_shape(draw, size, shape_color_code)
         text = draw_text(draw, size, text_color_code)
-        im = ImageOps.expand(im, border=size[0]*10/100, fill=(0))
+        im = ImageOps.expand(im, border=int(size[0]*10/100), fill=(0))
         orientation=rand.randint(0,355)
         im = im.rotate(orientation)
         im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
