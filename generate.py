@@ -1,6 +1,5 @@
 from PIL import Image,ImageDraw,ImageFont,ImageColor,ImageOps,ImageFilter
 import random as rand
-import string
 import json
 import math
 import argparse
@@ -226,7 +225,7 @@ def draw_text(draw, size, color):
     '''
     font_location="FreeSansBold.ttf"
     font = ImageFont.truetype(font_location, size=int(size[0]*50/100))
-    text = rand.choice(string.ascii_uppercase)
+    text = rand.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')
     text_width, text_height = draw.textsize(text, font)
     text_pos = ((size[0]-text_width)/2, (size[1]-text_height)/2)
     draw.text(text_pos, text, fill=color, font=font)
