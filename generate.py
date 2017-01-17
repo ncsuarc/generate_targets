@@ -9,6 +9,12 @@ import os
 import sys
 
 def get_color():
+    '''Generate random color
+
+    Returns:
+        color_code: hue, saturation, luminance string
+        color: color name string
+    '''
     color = rand.choice(list(Target.Color))
 
     saturation = rand.randint(50, 100)
@@ -48,6 +54,16 @@ def get_color():
     return color_code, color
 
 def draw_shape(draw, size, color):
+    '''Draw random shape
+
+    Args:
+        draw: ImageDraw.Draw
+        size: max size of target in pixels
+        color: hsl color string
+
+    Returns:
+        shape: Target.shape
+    '''
     shape = rand.choice(list(Target.Shape))
 
     if shape.name == 'circle':
@@ -198,6 +214,16 @@ def draw_cross(draw, size, color):
     draw.rectangle([top, bottom], fill=color)
 
 def draw_text(draw, size, color):
+    '''Draw random alphanumeric
+
+    Args:
+        draw: ImageDraw.Draw
+        size: max size of target in pixels
+        color: hsl color string
+
+    Returns:
+        text: the alphanumeric that was drawn
+    '''
     font_location="FreeSansBold.ttf"
     font = ImageFont.truetype(font_location, size=int(size[0]*50/100))
     text = rand.choice(string.ascii_uppercase)
