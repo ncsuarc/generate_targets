@@ -274,14 +274,7 @@ if __name__ == "__main__":
         del draw # done drawing
         save_name = "target" + str(n).zfill(6)
         im.save(save_name + '.png', 'PNG')
-        f.write(cwd + '/' + save_name + '.png' + ' ' + str(shape.value) + '\n')
+        f.write(cwd + '/' + save_name + '.png' + ' ' +
+                str(Target.alphanumeric_to_num(text)) + '\n')
 
-        with open(save_name + '.json', 'w') as outfile:
-            json.dump({'shape':shape.name,
-                        'background_color':shape_color.name,
-                        'alphanumeric':text,
-                        'alphanumeric_color':text_color.name,
-                        'orientation':orientation},
-                        outfile,
-                        indent=4)
     f.close()
