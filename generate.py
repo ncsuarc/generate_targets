@@ -1,6 +1,5 @@
 from PIL import Image,ImageDraw,ImageFont,ImageColor,ImageOps,ImageFilter
 import random as rand
-import json
 import math
 import argparse
 import Target
@@ -231,6 +230,30 @@ def draw_text(draw, size, color):
     draw.text(text_pos, text, fill=color, font=font)
     return text
 
+def create_target(size, background, save_name):
+    im = Image.new('RGBA', size, color=(0,0,0,0))
+    draw = ImageDraw.Draw(im)
+    shape_color_code, shape_color = get_color()
+    text_color_code, text_color = get_color()
+    shape = draw_shape(draw, size, shape_color_code)
+    text = draw_text(draw, size, text_color_code)
+    im = ImageOps.expand(im, border=int(size[0]*10/100), fill=(0))
+    orientation=rand.randint(0,355)
+    im = im.rotate(orientation)
+    im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
+
+    crop_left = rand.randint(0, background.width - im.width)
+    crop_right = crop_left + im.width
+    crop_top = rand.randint(0, background.height - im.height)
+    crop_bottom = crop_top + im.height
+    crop_box = (crop_left, crop_top, crop_right, crop_bottom)
+    cropped_background = background.crop(crop_box)
+    im = Image.alpha_composite(cropped_background, im)
+    im = im.convert('RGB')
+    del draw # done drawing
+    im.save(save_name + '.png', 'PNG')
+    return shape_color, text_color, shape, text, orientation
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'generate targets')
 
@@ -250,30 +273,8 @@ if __name__ == "__main__":
     background = Image.open(script_path + "/background.jpg").convert('RGBA')
     cwd = os.getcwd()
     for n in range(args.number):
-        im = Image.new('RGBA', size, color=(0,0,0,0))
-        draw = ImageDraw.Draw(im)
-
-        shape_color_code, shape_color = get_color()
-        text_color_code, text_color = get_color()
-        shape = draw_shape(draw, size, shape_color_code)
-        text = draw_text(draw, size, text_color_code)
-        im = ImageOps.expand(im, border=int(size[0]*10/100), fill=(0))
-        orientation=rand.randint(0,355)
-        im = im.rotate(orientation)
-        im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
-
-        crop_left = rand.randint(0, background.width - im.width)
-        crop_right = crop_left + im.width
-        crop_top = rand.randint(0, background.height - im.height)
-        crop_bottom = crop_top + im.height
-        crop_box = (crop_left, crop_top, crop_right, crop_bottom)
-        cropped_background = background.crop(crop_box)
-        im = Image.alpha_composite(cropped_background, im)
-        im = im.convert('RGB')
-
-        del draw # done drawing
         save_name = "target" + str(n).zfill(6)
-        im.save(save_name + '.png', 'PNG')
+        shape_color, text_color, shape, text, orientaion = create_target(size, background, save_name)
         f.write(cwd + '/' + save_name + '.png' + ' ' +
                 str(Target.alphanumeric_to_num(text)) + '\n')
 
