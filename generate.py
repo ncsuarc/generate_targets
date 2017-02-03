@@ -273,9 +273,9 @@ if __name__ == "__main__":
     background = Image.open(script_path + "/background.jpg").convert('RGBA')
     cwd = os.getcwd()
     for n in range(args.number):
-        save_name = "target" + str(n).zfill(6)
+        save_name = "target" + str(n).zfill(8)
         shape_color, text_color, shape, text, orientaion = create_target(size, background, save_name)
         f.write(cwd + '/' + save_name + '.png' + ' ' +
-                str(Target.alphanumeric_to_num(text)) + '\n')
+                str(shape.value) + '\n')
 
     f.close()
