@@ -51,7 +51,7 @@ def get_color():
     color_code = 'hsl(%d, %d%%, %d%%)' % (hue, saturation, luminance)
     return color_code, color
 
-def draw_shape(draw, size, color):
+def draw_shape(draw, shape, size, color):
     '''Draw random shape
 
     Args:
@@ -62,7 +62,6 @@ def draw_shape(draw, size, color):
     Returns:
         shape: Target.shape
     '''
-    shape = rand.choice(list(Target.Shape))
 
     if shape.name == 'circle':
         draw_circle(draw, size, color)
@@ -92,8 +91,6 @@ def draw_shape(draw, size, color):
         draw_cross(draw, size, color)
     else:
         sys.exit(shape.name + ' not found')
-    return shape
-
 
 def draw_circle(draw, size, color):
     square_height = size[0]*rand.randint(60,95)/100
@@ -211,7 +208,7 @@ def draw_cross(draw, size, color):
     bottom=(size[0]-border_height, size[0]-border_width)
     draw.rectangle([top, bottom], fill=color)
 
-def draw_text(draw, size, color):
+def draw_text(draw, text, size, color):
     '''Draw random alphanumeric
 
     Args:
@@ -224,13 +221,11 @@ def draw_text(draw, size, color):
     '''
     font_location="FreeSansBold.ttf"
     font = ImageFont.truetype(font_location, size=int(size[0]*50/100))
-    text = rand.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')
     text_width, text_height = draw.textsize(text, font)
     text_pos = ((size[0]-text_width)/2, (size[1]-text_height)/2)
     draw.text(text_pos, text, fill=color, font=font)
-    return text
 
-def create_target(size, background, save_name):
+def create_target(size, save_name, shape, character):
     im = Image.new('RGBA', size, color=(0,0,0,0))
     draw = ImageDraw.Draw(im)
     shape_color_code, shape_color = get_color()
@@ -240,24 +235,19 @@ def create_target(size, background, save_name):
         shape_color_code, shape_color = get_color()
         text_color_code, text_color = get_color()
 
-    shape = draw_shape(draw, size, shape_color_code)
-    text = draw_text(draw, size, text_color_code)
+    draw_shape(draw, shape, size, shape_color_code)
+    draw_text(draw, character, size, text_color_code)
     im = ImageOps.expand(im, border=int(size[0]*10/100), fill=(0))
     orientation=rand.randint(0,355)
     im = im.rotate(orientation)
     im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
 
-    crop_left = rand.randint(0, background.width - im.width)
-    crop_right = crop_left + im.width
-    crop_top = rand.randint(0, background.height - im.height)
-    crop_bottom = crop_top + im.height
-    crop_box = (crop_left, crop_top, crop_right, crop_bottom)
-    cropped_background = background.crop(crop_box)
-    im = Image.alpha_composite(cropped_background, im)
     im = im.convert('RGB')
     del draw # done drawing
-    im.save(save_name + '.png', 'PNG')
-    return shape_color, text_color, shape, text, orientation
+    prefix_dir = str(shape.name + '_' + character)
+    if not os.path.isdir(prefix_dir):
+        os.mkdir(prefix_dir)
+    im.save(os.path.join(prefix_dir, save_name + '.jpg'), 'JPEG', quality=100, optimize=True, progressive=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'generate targets')
@@ -273,14 +263,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     size = (args.size, args.size)
-    f = open('imgpath_label.txt', 'w')
-    script_path = os.path.dirname(os.path.abspath(__file__))
-    background = Image.open(script_path + "/background.jpg").convert('RGBA')
-    cwd = os.getcwd()
-    for n in range(args.number):
-        save_name = "target" + str(n).zfill(8)
-        shape_color, text_color, shape, text, orientaion = create_target(size, background, save_name)
-        f.write(cwd + '/' + save_name + '.png' + ' ' +
-                str(shape.value) + '\n')
-
-    f.close()
+    n = 0
+    for shape in Target.Shape:
+        for character in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890':
+            for _ in range(args.number):
+                save_name = "target" + str(n).zfill(8)
+                create_target(size, save_name, shape, character)
+                n += 1
