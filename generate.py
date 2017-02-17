@@ -235,6 +235,11 @@ def create_target(size, background, save_name):
     draw = ImageDraw.Draw(im)
     shape_color_code, shape_color = get_color()
     text_color_code, text_color = get_color()
+    #Prevent target and letter from being the same color
+    while shape_color == text_color:
+        shape_color_code, shape_color = get_color()
+        text_color_code, text_color = get_color()
+
     shape = draw_shape(draw, size, shape_color_code)
     text = draw_text(draw, size, text_color_code)
     im = ImageOps.expand(im, border=int(size[0]*10/100), fill=(0))
