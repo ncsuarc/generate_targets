@@ -247,7 +247,7 @@ def create_target(size, save_name, shape, character):
     prefix_dir = str(shape.name + '_' + character)
     if not os.path.isdir(prefix_dir):
         os.mkdir(prefix_dir)
-    im.save(os.path.join(prefix_dir, save_name + '.jpg'), 'JPEG', quality=100, optimize=True, progressive=True)
+    im.save(os.path.join(prefix_dir, save_name + '.png'), 'PNG', quality=100, optimize=True, progressive=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'generate targets')
@@ -263,10 +263,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     size = (args.size, args.size)
-    n = 0
     for shape in Target.Shape:
         for character in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890':
-            for _ in range(args.number):
-                save_name = "target" + str(n).zfill(8)
+            for i in range(args.number):
+                save_name = "target" + str(i).zfill(8)
                 create_target(size, save_name, shape, character)
-                n += 1
