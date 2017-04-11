@@ -225,7 +225,7 @@ def draw_text(draw, text, size, color):
     text_pos = ((size[0]-text_width)/2, (size[1]-text_height)/2)
     draw.text(text_pos, text, fill=color, font=font)
 
-def create_target(size, save_name, shape, character):
+def create_target(size, background, save_name, shape, character):
     im = Image.new('RGBA', size, color=(0,0,0,0))
     draw = ImageDraw.Draw(im)
     shape_color_code, shape_color = get_color()
@@ -241,6 +241,14 @@ def create_target(size, save_name, shape, character):
     orientation=rand.randint(0,355)
     im = im.rotate(orientation)
     im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
+
+    crop_left = rand.randint(0, background.width - im.width)
+    crop_right = crop_left + im.width
+    crop_top = rand.randint(0, background.height - im.height)
+    crop_bottom = crop_top + im.height
+    crop_box = (crop_left, crop_top, crop_right, crop_bottom)
+    cropped_background = background.crop(crop_box)
+    im = Image.alpha_composite(cropped_background, im) 
 
     im = im.convert('RGB')
     del draw # done drawing
@@ -263,8 +271,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     size = (args.size, args.size)
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    background = Image.open(script_path + "/background.jpg").convert('RGBA')
+    n = 0
     for shape in Target.Shape:
         for character in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890':
             for i in range(args.number):
-                save_name = "target" + str(i).zfill(8)
-                create_target(size, save_name, shape, character)
+                save_name = "target" + str(n).zfill(8)
+                create_target(size, background, save_name, shape, character)
+                n += 1
