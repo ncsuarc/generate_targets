@@ -15,8 +15,8 @@ def get_color():
     '''
     color = rand.choice(list(Target.Color))
 
-    saturation = rand.randint(50, 100)
-    luminance = rand.randint(40, 60)
+    saturation = rand.randint(40, 90)
+    luminance = rand.randint(20, 40)
 
     if color.name == 'red':
         hue = rand.randint(0, 4)
