@@ -1,10 +1,12 @@
 from PIL import Image,ImageDraw,ImageFont,ImageColor,ImageOps,ImageFilter
 import random as rand
+import numpy as np
 import math
 import argparse
 import Target
 import os
 import sys
+import json
 
 def get_color():
     '''Generate random color
@@ -64,33 +66,35 @@ def draw_shape(draw, shape, size, color):
     '''
 
     if shape.name == 'circle':
-        draw_circle(draw, size, color)
+        top, bottom = draw_circle(draw, size, color)
     elif shape.name == 'semicircle':
-        draw_semicircle(draw, size, color)
+        top, bottom = draw_semicircle(draw, size, color)
     elif shape.name == 'quarter_circle':
-        draw_quarter_circle(draw, size, color)
+        top, bottom = draw_quarter_circle(draw, size, color)
     elif shape.name == 'triangle':
-        draw_polygon(draw, size, 3, color)
+        top, bottom = draw_polygon(draw, size, 3, color)
     elif shape.name == 'square':
-        draw_square(draw, size, color)
+        top, bottom = draw_square(draw, size, color)
     elif shape.name == 'rectangle':
-        draw_rectangle(draw, size, color)
+        top, bottom = draw_rectangle(draw, size, color)
     elif shape.name == 'trapezoid':
-        draw_trapezoid(draw, size, color)
+        top, bottom = draw_trapezoid(draw, size, color)
     elif shape.name == 'pentagon':
-        draw_polygon(draw, size, 5, color)
+        top, bottom = draw_polygon(draw, size, 5, color)
     elif shape.name == 'hexagon':
-        draw_polygon(draw, size, 6, color)
+        top, bottom = draw_polygon(draw, size, 6, color)
     elif shape.name == 'heptagon':
-        draw_polygon(draw, size, 7, color)
+        top, bottom = draw_polygon(draw, size, 7, color)
     elif shape.name == 'octagon':
-        draw_polygon(draw, size, 8, color)
+        top, bottom = draw_polygon(draw, size, 8, color)
     elif shape.name == 'star':
-        draw_star(draw, size, color)
+        top, bottom = draw_star(draw, size, color)
     elif shape.name == 'cross':
-        draw_cross(draw, size, color)
+        top, bottom = draw_cross(draw, size, color)
     else:
         sys.exit(shape.name + ' not found')
+
+    return top, bottom
 
 def draw_circle(draw, size, color):
     square_height = size[0]*rand.randint(60,95)/100
@@ -98,6 +102,7 @@ def draw_circle(draw, size, color):
     top=(square_border, square_border)
     bottom=(size[0]-square_border, size[0]-square_border)
     draw.pieslice([top, bottom], 0, 360, fill=color)
+    return top, bottom
 
 def draw_semicircle(draw, size, color):
     square_height = size[0]*rand.randint(85,100)/100
@@ -106,6 +111,7 @@ def draw_semicircle(draw, size, color):
     top=(square_border, square_border+offset)
     bottom=(size[0]-square_border, size[0]-square_border+offset)
     draw.pieslice([top, bottom], 180, 360, fill=color)
+    return top, bottom
 
 def draw_quarter_circle(draw, size, color):
     square_height = size[0]*rand.randint(140,170)/100
@@ -115,8 +121,7 @@ def draw_quarter_circle(draw, size, color):
     bottom=(size[0]-square_border+offset,
             size[0]-square_border+offset)
     draw.pieslice([top, bottom], 180, 270, fill=color)
-    draw.point((0,0), fill=color)
-    draw.point((0,0), fill=color)
+    return top, bottom
 
 def draw_square(draw, size, color):
     square_height = size[0]*rand.randint(55,90)/100
@@ -124,6 +129,7 @@ def draw_square(draw, size, color):
     top=(square_border, square_border)
     bottom=(size[0]-square_border, size[0]-square_border)
     draw.rectangle([top, bottom], fill=color)
+    return top, bottom
 
 def draw_rectangle(draw, size, color):
     if(rand.randint(0,1)==0):
@@ -138,6 +144,27 @@ def draw_rectangle(draw, size, color):
     top=(border_width, border_height)
     bottom=(size[0]-border_width, size[0]-border_height)
     draw.rectangle([top, bottom], fill=color)
+    return top, bottom
+
+def get_bounding_box_from_points(pts, size):
+    xmin = size[0]
+    ymin = size[1]
+    xmax = 0
+    ymax = 0
+
+    for x, y in pts:
+        if x < xmin:
+            xmin = x
+        if y < ymin:
+            ymin = y
+        if x > xmax:
+            xmax = x
+        if y > ymax:
+            ymax = y
+
+    top = (xmin, ymin)
+    bottom = (xmax, ymax)
+    return top, bottom
 
 def draw_trapezoid(draw, size, color):
     top_width = size[0]*rand.randint(40,50)/100
@@ -151,26 +178,26 @@ def draw_trapezoid(draw, size, color):
     top_left=(border_top_width, border_height)
     top_right=(size[0]-border_top_width, border_height)
 
-    bottom_left=(border_bottom_width,
-                    size[0]-border_height)
+    bottom_left=(border_bottom_width, size[0]-border_height)
 
-    bottom_right=(size[0]-border_bottom_width,
-                    size[0]-border_height)
-    draw.polygon((top_left,
-                    top_right,
-                    bottom_right,
-                    bottom_left),
-                    fill=color)
+    bottom_right=(size[0]-border_bottom_width, size[0]-border_height)
+    points = (top_left, top_right, bottom_right, bottom_left)
+    draw.polygon(points, fill=color)
+    return get_bounding_box_from_points(points, size)
 
 def draw_star(draw, size, color):
     sides = 5
     cord = size[0]*55/100
     angle = 2*math.pi/sides
     rotation = math.pi/2
-    points =[]
+    points = []
+    pts = []
     for s in (0,2,4,1,3):
-        points.append(math.cos(angle*s-rotation)*cord+size[0]/2)
-        points.append(math.sin(angle*s-rotation)*cord+size[0]/2)
+        x = math.cos(angle*s-rotation)*cord+size[0]/2
+        y = math.sin(angle*s-rotation)*cord+size[0]/2
+        points.append(x)
+        points.append(y)
+        pts.append((x, y))
     draw.polygon(points, fill=color)
 
     #fill in the center pentagon
@@ -181,18 +208,24 @@ def draw_star(draw, size, color):
         points.append(math.cos(angle*s-rotation)*cord+size[0]/2)
         points.append(math.sin(angle*s-rotation)*cord+size[0]/2)
     draw.polygon(points, fill=color)
+    return get_bounding_box_from_points(pts, size)
 
 def draw_polygon(draw, size, sides, color):
     cord = size[0]*rand.randint(45,50)/100
     angle = 2*math.pi/sides
     rotation = 0
     points =[]
+    pts = []
     if(sides % 2 == 1):
         rotation = math.pi/2
     for s in range(sides):
-        points.append(math.cos(angle*s-rotation)*cord+size[0]/2)
-        points.append(math.sin(angle*s-rotation)*cord+size[0]/2)
+        x = math.cos(angle*s-rotation)*cord+size[0]/2
+        y = math.sin(angle*s-rotation)*cord+size[0]/2
+        points.append(x)
+        points.append(y)
+        pts.append((x, y))
     draw.polygon(points, fill=color)
+    return get_bounding_box_from_points(pts, size)
 
 def draw_cross(draw, size, color):
     rectangle_width = size[0]*rand.randint(35,40)/100
@@ -203,10 +236,12 @@ def draw_cross(draw, size, color):
     top=(border_width, border_height)
     bottom=(size[0]-border_width, size[0]-border_height)
     draw.rectangle([top, bottom], fill=color)
+    t, b = top, bottom
     # draw rectanle turned
     top=(border_height, border_width)
     bottom=(size[0]-border_height, size[0]-border_width)
     draw.rectangle([top, bottom], fill=color)
+    return get_bounding_box_from_points([t, b, top, bottom], size)
 
 def draw_text(draw, text, size, color):
     '''Draw random alphanumeric
@@ -235,32 +270,47 @@ def create_target(size, background, save_name, shape, character):
         shape_color_code, shape_color = get_color()
         text_color_code, text_color = get_color()
 
-    draw_shape(draw, shape, size, shape_color_code)
+    top, bottom = draw_shape(draw, shape, size, shape_color_code)
+
     draw_text(draw, character, size, text_color_code)
-    im = ImageOps.expand(im, border=int(size[0]*10/100), fill=(0))
     orientation=rand.randint(0,355)
     im = im.rotate(orientation)
     im = im.filter(ImageFilter.GaussianBlur(radius=args.blur))
 
-    crop_left = rand.randint(0, background.width - im.width)
-    crop_right = crop_left + im.width
-    crop_top = rand.randint(0, background.height - im.height)
-    crop_bottom = crop_top + im.height
+    background_size = 400
+    crop_left = rand.randint(0, background.width - background_size)
+    crop_right = crop_left + background_size
+    crop_top = rand.randint(0, background.height - background_size)
+    crop_bottom = crop_top + background_size
     crop_box = (crop_left, crop_top, crop_right, crop_bottom)
     cropped_background = background.crop(crop_box)
-    im = Image.alpha_composite(cropped_background, im) 
+
+    im_paste = Image.new('RGBA', (background_size, background_size), color=(0,0,0,0))
+    offset = (rand.randint(0, cropped_background.width - im.width), rand.randint(0, cropped_background.height - im.height))
+    im_paste.paste(im, offset)
+
+    im = Image.alpha_composite(cropped_background, im_paste)
 
     im = im.convert('RGB')
     del draw # done drawing
     prefix_dir = str(shape.name + '_' + character)
     if not os.path.isdir(prefix_dir):
         os.mkdir(prefix_dir)
-    im.save(os.path.join(prefix_dir, save_name + '.png'), 'PNG', quality=100, optimize=True, progressive=True)
+    im.save(os.path.join(prefix_dir, save_name + '.jpg'), 'JPEG', quality=100, optimize=True, progressive=True)
+    with open(os.path.join(prefix_dir, save_name + '.json'), 'w') as json_file:
+        top = np.array(top)
+        bottom = np.array(bottom)
+        offset = np.array(offset)
+        top += offset
+        bottom += offset
+
+        data = { 'xmin':top[0], 'ymin':top[1], 'xmax':bottom[0], 'ymax':bottom[1] }
+        json.dump(data, json_file)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'generate targets')
 
-    parser.add_argument('-s', '--size', type=int, default = 50,
+    parser.add_argument('-s', '--size', type=int, default = 32,
             help='max size in pixels of target')
 
     parser.add_argument('-n', '--number', type=int, default = 1,
